@@ -56,15 +56,15 @@ class DBcontrol:
     __doc__ = '''有增删查改的方法，对应于数据表'''
     def __init__(self):
         # 数据库连接配置
-        self.data="%s+%s://%s:%s@%s:%s/%s" % \
-                  (config.dbtype, config.dbdrivername, config.dbusername,config.dbpassword,config.dbhost,config.dbport,config.dbname)
-    def __enter__(self):
+        data = "%s+%s://%s:%s@%s:%s/%s" % \
+               (config.dbtype, config.dbdrivername, config.dbusername, config.dbpassword, config.dbhost,
+                config.dbport, config.dbname)
         # 初始化数据库连接:
-        engine = create_engine(self.data)
+        engine = create_engine(data)
         # 创建DBSession类型:
         DBSession = sessionmaker(bind=engine)
         self.session = DBSession()
-        #创建表单，有就跳过
+        # 创建表单，有就跳过
         Base.metadata.create_all(engine)
     def __exit__(self, exc_type, exc_val, exc_tb):
         # 关闭session:
