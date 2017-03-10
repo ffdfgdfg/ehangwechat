@@ -47,11 +47,11 @@ class adminauth(Base):
 '''
 
 class MongoUtil:
-    def __init__(self, db_host=config.dbhost, db_name=config.dbname):
+    def __init__(self, db_host=config.databasesettings['host'], db_name=config.databasesettings['dbname']):
         self.db_ip = db_host
         self.db_name = db_name
 
-        self.client = pymongo.MongoClient(self.db_ip, config.dbport) # 并没有用账号和密码 ！！
+        self.client = pymongo.MongoClient(self.db_ip, config.databasesettings['port']) # 并没有用账号和密码 ！！
         self.db = self.client[db_name] #选择数据库
 
         #（表单） 合集

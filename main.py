@@ -16,5 +16,5 @@ if __name__ == '__main__':
     tornado.options.parse_command_line()
     http_server = tornado.httpserver.HTTPServer(app)
     http_server.listen(options.port)
-    tornado.ioloop.PeriodicCallback(Like_Cron, config.UpdatePeriod).start()
+    tornado.ioloop.PeriodicCallback(Like_Cron, config.settings['UpdatePeriod']).start()
     tornado.ioloop.IOLoop.instance().start()

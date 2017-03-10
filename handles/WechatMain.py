@@ -119,7 +119,7 @@ class wechat(tornado.web.RequestHandler):
         echostr = self.get_argument('echostr', 'default')
         #get方式验证
         if signature != 'default' and timestamp != 'default' and nonce != 'default' and echostr != 'default' \
-                and check_signature(config.token, signature, timestamp, nonce):
+                and check_signature(config.wechatsettings['token'], signature, timestamp, nonce):
             self.write(echostr)
         # 处理其他莫名其妙的get请求。。。。
         else:
@@ -133,16 +133,16 @@ class wechat(tornado.web.RequestHandler):
         nonce = self.get_argument('nonce', 'default')
         # 检测是不是微信服务器发送的封包
         if signature != 'default' and timestamp != 'default' and nonce != 'default' \
-                and check_signature(config.token, signature, timestamp, nonce):
+                and check_signature(config.wechatsettings['token'], signature, timestamp, nonce):
             #解析http封包包体
             body = self.request.body.decode('utf-8') # 由utf-8转化为unicode为解码decode，反之为encode
 
             # 解析明文xml消息
-            if config.encrypt_mode == 'normal':
+            if config.wechatsettings['encrypt_mode'] == 'normal':
                 msg = parse_message(body)
             # 解析加密xml消息
-            elif config.encrypt_mode == 'aes':
-                crypto = WeChatCrypto(config.token, config.encoding_aes_key, config.appid)
+            elif config.wechatsettings['encrypt_mode'] == 'aes':
+                crypto = WeChatCrypto(config.wechatsettings['token'], config.wechatsettings['encoding_aes_key'], config.wechatsettings['appid'])
                 try:
                     decrypted_xml = crypto.decrypt_message(
                         body,
@@ -173,10 +173,10 @@ class wechat(tornado.web.RequestHandler):
                     result=create_reply(ReplyContent, message=msg)
                     xml = result.render()
                     #是否加密xml
-                    if config.encrypt_mode == 'normal':
+                    if config.wechatsettings['encrypt_mode'] == 'normal':
                         self.write(xml)
-                    elif config.encrypt_mode == 'aes':
-                        crypto = WeChatCrypto(config.token, config.encoding_aes_key, config.appid)
+                    elif config.wechatsettings['encrypt_mode'] == 'aes':
+                        crypto = WeChatCrypto(config.wechatsettings['token'], config.wechatsettings['encoding_aes_key'], config.wechatsettings['appid'])
                         encrypted_xml = crypto.encrypt_message(xml, nonce, timestamp)
                         self.write(encrypted_xml)
                     else:

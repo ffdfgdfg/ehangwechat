@@ -8,7 +8,7 @@ from utils import SearchServes
 class OperateSystem:
     def __init__(self):
         # 实例化client类
-        self.client = WeChatClient(config.appid, config.appsecret)
+        self.client = WeChatClient(config.wechatsettings['appid'], config.wechatsettings['appsecret'])
         # 实例化database类
         self.db = DataBase.MongoUtil()
 
