@@ -1,4 +1,4 @@
-# coding=utf-8
+# -*- coding: utf-8 -*-
 ###处理被动回复部分,是由用户发送消息或请求，回复对应的消息或请求
 import json
 import re

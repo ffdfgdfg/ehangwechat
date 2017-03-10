@@ -1,8 +1,8 @@
-# coding=utf-8
+# -*- coding: utf-8 -*-
 #数据库处理
 
 import pymongo
-import config
+from config import *
 
 '''
     # 表的名字:
@@ -47,11 +47,11 @@ class adminauth(Base):
 '''
 
 class MongoUtil:
-    def __init__(self, db_host=config.databasesettings['host'], db_name=config.databasesettings['dbname']):
+    def __init__(self, db_host=databasesettings['host'], db_name=databasesettings['dbname']):
         self.db_ip = db_host
         self.db_name = db_name
 
-        self.client = pymongo.MongoClient(self.db_ip, config.databasesettings['port']) # 并没有用账号和密码 ！！
+        self.client = pymongo.MongoClient(self.db_ip, databasesettings['port']) # 并没有用账号和密码 ！！
         self.db = self.client[db_name] #选择数据库
 
         #（表单） 合集

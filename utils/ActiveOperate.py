@@ -1,14 +1,15 @@
+# -*- coding: utf-8 -*-
 #主动操作部分，主要为更新、获取菜单，获取素材,获取用户信息等
 from wechatpy import WeChatClient
 import json
-import config
+from config import *
 from utils import DataBase
 from utils import SearchServes
 
 class OperateSystem:
     def __init__(self):
         # 实例化client类
-        self.client = WeChatClient(config.wechatsettings['appid'], config.wechatsettings['appsecret'])
+        self.client = WeChatClient(wechatsettings['appid'], wechatsettings['appsecret'])
         # 实例化database类
         self.db = DataBase.MongoUtil()
 
