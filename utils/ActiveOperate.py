@@ -39,7 +39,7 @@ class OperateSystem:
 
     def GetMaterial(self, *args, **kwargs):
         #获取素材
-        count = self.client.api.WeChatMaterial.get_count()
+        count = self.client.material.get_count()
         if self.db.query(tablename='oplog', by='materialcount',materialcount=count) is None:
             HavingMaterial=self.db.query(tablename='oplog', by='id', id=1).materialcount
             ArticlesDic = json.loads(self.client.api.WeChatMaterial.batchget('news', offset=HavingMaterial, count=20))
