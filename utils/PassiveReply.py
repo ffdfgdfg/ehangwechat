@@ -13,7 +13,7 @@ class ReplySystem:
         self.msg=msg
         self.args=args
         self.kwargs=kwargs
-        self.db = DataBase.DBcontrol()
+        self.db = DataBase.MongoUtil()
 
     #这里为自动回复的消息
     def TextReply(self, reply):
@@ -75,26 +75,25 @@ class ReplySystem:
     def auth(self, *args, **kwargs):
         #预认证过程，用于改变用户类型
         #需要传入args验证类型,kwargs欢迎消息，失败消息
-        if self.db.query(tablename='user', by='openid', openid=self.kwargs['source']) is None:
+        if self.db.query(CollectionName='user', by='openid', openid=self.kwargs['source']) is None:
             # 数据表中不存在，插入数据
-            self.db.insert(tablename='user', openid=self.kwargs['source'], nickname=None, type=args[0])
+            self.db.insert(CollectionName='user', openid=self.kwargs['source'], nickname='', type=args[0])
             # 回复欢迎验证消息
             return kwargs['Welcom_auth_msg']
-        elif self.db.query(tablename='user', by='openid', openid=self.kwargs['source']) is not None:
+        elif self.db.query(CollectionName='user', by='openid', openid=self.kwargs['source']) is not None:
             # 数据表中存在用户
             if args[0] == 'sign':
-                if self.db.query(tablename='signlog', by='openid', openid=self.kwargs['source']) is not None:
+                if self.db.query(CollectionName='signlog', by='openid', openid=self.kwargs['source']) is not None:
                     # 验证失败，发送失败消息
                     return kwargs['Auth_fail_msg']
                 else:
                     # 改变用户状态
-                    self.db.update(tablename='user', by='openid', how='type', openid=self.kwargs['source'],
-                              type=args[0])
+                    self.db.update(CollectionName='user', by='openid', openid=self.kwargs['source'], type=args[0])
                     # 回复欢迎验证消息
                     return kwargs['Welcom_auth_msg']
             elif args[0] == 'adminlogin':
                 # 直接改变用户状态，进入下一步验证
-                self.db.update(tablename='user', by='openid', how='type', openid=self.kwargs['source'], type=args[0])
+                self.db.update(CollectionName='user', by='openid', openid=self.kwargs['source'], type=args[0])
                 # 发送欢迎验证消息
                 return kwargs['Welcom_auth_msg']
             else:
@@ -114,19 +113,17 @@ class ReplySystem:
                 student_id = match_student.group(2)
                 student_name = match_student.group(3)
                 # 完全匹配成功
-                if self.db.query(tablename='signlog', by='openid', openid=self.kwargs['source']) is None and \
-                                self.db.query(tablename='signlog', by='student_id', student_id=student_id) is None:
-                    self.db.insert(tablename='signlog', openid=self.kwargs['source'], student_id=student_id,
-                              student_name=student_name)
-                    self.db.update(tablename='user', by='openid', how='type', openid=self.kwargs['source'], type='normal')
+                if self.db.query(CollectionName='signlog', by='openid', openid=self.kwargs['source']) is None and \
+                                self.db.query(CollectionName='signlog', by='student_id', student_id=student_id) is None:
+                    self.db.insert(CollectionName='signlog', openid=self.kwargs['source'], student_id=student_id, student_name=student_name)
+                    self.db.update(CollectionName='user', by='openid', openid=self.kwargs['source'], type='normal')
                     return '签到成功！'
-                elif self.db.query(tablename='signlog', by='student_id', student_id=student_id) == student_id:
-                    self.db.update(tablename='user', by='openid', how='type', openid=self.kwargs['source'], type='normal')
+                elif self.db.query(CollectionName='signlog', by='student_id', student_id=student_id)['student_id'] == student_id:
+                    self.db.update(CollectionName='user', by='openid', openid=self.kwargs['source'], type='normal')
                     return '该学号已签到！若想签到另外的学号，请重新回复 签到'
-                elif self.db.query(tablename='signlog', by='openid', openid=self.kwargs['source']) == self.kwargs[
-                    'source'] and \
-                        self.db.query(tablename='signlog', by='student_id', student_id=student_id):
-                    self.db.update(tablename='user', by='openid', how='type', openid=self.kwargs['source'], type='normal')
+                elif self.db.query(CollectionName='signlog', by='openid', openid=self.kwargs['source'])['openid'] == self.kwargs['source'] \
+                        and self.db.query(CollectionName='signlog', by='student_id', student_id=student_id)['student_id'] == student_id:
+                    self.db.update(CollectionName='user', by='openid', openid=self.kwargs['source'], type='normal')
                     return '已签到成功'
             else:
                 return '请输入中文姓名！！'
@@ -141,18 +138,18 @@ class ReplySystem:
             username = match_admin.group(1)
             password = match_admin.group(2)
         else:
-            self.db.update(tablename='user', by='openid', how='type', openid=self.kwargs['source'], type='normal')
+            self.db.update(CollectionName='user', by='openid', openid=self.kwargs['source'], type='normal')
             return '输入格式有误,请重新回复admincp登陆'
-        result = self.db.query(tablename='adminauth', by='username', username=username)
+        result = self.db.query(CollectionName='adminauth', by='username', username=username)
         if result is not None:
             # 在管理表中存在
             # 验证账号密码
-            if result.password == password:
-                self.db.update(tablename='adminauth', by='username', how='access', username=username, access='online')
-                self.db.update(tablename='user', by='openid', how='type', openid=self.kwargs['source'], type='admin')
+            if result['password'] == password:
+                self.db.update(CollectionName='adminauth', by='username', username=username, access='online')
+                self.db.update(CollectionName='user', by='openid', openid=self.kwargs['source'], type='admin')
                 return '登陆成功'
             else:
-                self.db.update(tablename='user', by='openid', how='type', openid=self.kwargs['source'], type='normal')
+                self.db.update(CollectionName='user', by='openid', openid=self.kwargs['source'], type='normal')
                 return '账号或密码验证失败,请重新回复admincp登陆'
     def AdminOperateProcess(self):
         #管理员操作
@@ -168,13 +165,13 @@ class ReplySystem:
             op.AutoChekingMaterialProcess()
             return '更新素材成功'
         elif self.msg.find('退出'):
-            self.db.update(tablename='user', by='openid', how='type', openid=self.kwargs['source'], type='normal')
+            self.db.update(CollectionName='user', by='openid', openid=self.kwargs['source'], type='normal')
             return ('退出成功')
 
     def TextMsgProcess(self):
         #消息处理方法，用于区分用户状态，并根据输入的语句选择方法发送    处理文字消息
         # 需要先区分用户状态
-        result = self.db.query(tablename='user', by='openid', openid=self.kwargs['source']).type
+        result = self.db.query(CollectionName='user', by='openid', openid=self.kwargs['source'])['type']
         if result == 'normal' or None:
             #普通状态
             # 分为特殊关键字与检索

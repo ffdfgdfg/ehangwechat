@@ -51,8 +51,8 @@ class wechat(tornado.web.RequestHandler):
             if isinstance(body.event, 'subscribe'):  # subscribe
                 return '欢迎关注'
             elif isinstance(body.event, 'unsubscribe'):  # unsubscribe
-                db=DataBase.DBcontrol()
-                db.delete(tablename='user', by='openid', openid=body.source)
+                db=DataBase.MongoUtil()
+                db.delete(CollectionName='user', by='openid', openid=body.source)
                 return '再见'
             elif isinstance(body.event, 'subscribe_scan'): # 未关注用户扫描带参数二维码事件
                 scene_id = body.scene_id  # 带参数二维码 scene_id，去除了前缀 qrscene_

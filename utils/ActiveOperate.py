@@ -10,7 +10,7 @@ class OperateSystem:
         # 实例化client类
         self.client = WeChatClient(config.appid, config.appsecret)
         # 实例化database类
-        self.db = DataBase.DBcontrol()
+        self.db = DataBase.MongoUtil()
 
     def GetUserInformation(self, openid, *args, **kwargs):
         #获取用户信息
@@ -30,7 +30,7 @@ class OperateSystem:
             return exec(kwargs['GetWhat'])
         elif args == 'update' and kwargs is not None:
             if kwargs['UpdateWhat'] == 'nickname':
-                self.db.update(tablename='user', by='openid', how='nickname', openid=openid, nickname=nickname)
+                self.db.update(CollectionName='user',by='openid', openid=openid, nickname=nickname)
                 return 'Update Success'
             else:
                 raise AttributeError
@@ -40,14 +40,17 @@ class OperateSystem:
     def GetMaterial(self, *args, **kwargs):
         #获取素材
         count = self.client.material.get_count()
-        if self.db.query(tablename='oplog', by='materialcount',materialcount=count) is None:
-            HavingMaterial=self.db.query(tablename='oplog', by='id', id=1).materialcount
+        if self.db.query(CollectionName='oplog', by='materialcount', materialcount=count) is None:
+            self.db.update(CollectionName='oplog', by='id', id=1)
+            HavingMaterial=self.db.query(CollectionName='oplog', by='id', id=1)['materialcount']
+            if HavingMaterial is None:
+                HavingMaterial = 0
             ArticlesDic = json.loads(self.client.api.WeChatMaterial.batchget('news', offset=HavingMaterial, count=20))
             articles = ArticlesDic['item']
             add=SearchServes.Serves()
             for article in articles:
                 add.AddIndex(article)
-                self.db.update(tablename='oplog', by='id', how='materialcount', id=1, materialcount=HavingMaterial+1)
+                self.db.update(CollectionName='oplog', by='id', id=1, materialcount=HavingMaterial+1)
 
     def GetMenu(self, *args, **kwargs):
         #获取当前菜单
@@ -69,6 +72,6 @@ class OperateSystem:
         import time
         LocalTime = int(time.time())
         self.GetMaterial()
-        self.db.update(tablename='oplog', by='id', how='materialuptime', id=1, materialuptime=LocalTime)
+        self.db.update(CollectionName='oplog', by='id', id=1, materialuptime=LocalTime)
         print('Update materials in %s' % (time.asctime(time.localtime(LocalTime))))
 
