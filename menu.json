@@ -1,34 +1,31 @@
 {
-            "button": [
+    "button":
+    [
+        {
+            "type": "view",
+            "name": "易频道",
+            "url": "http://mp.weixin.qq.com/mp/homepage?__biz=MjM5Mzk3NjQ3MQ==&hid=5&sn=9a63ccd5263547550c633bec89d84cec#wechat_redirect"
+        },
+        {
+            "type": "view",
+            "name": "易起",
+            "url": "http://mp.weixin.qq.com/mp/homepage?__biz=MjM5Mzk3NjQ3MQ==&hid=2&sn=e53ff89b1ad10a05c16e4d161656e5f5#wechat_redirect"
+        },
+        {
+            "name": "联系我们",
+            "sub_button":
+            [
                 {
-                    "type": "click",
-                    "name": "今日歌曲",
-                    "key": "V1001_TODAY_MUSIC"
+                    "type": "img",
+                    "name": "易拍报名",
+                    "key": "WMINgCODBlLQrkq_BKf7x4Yc3NfvVSUlH3yRfhPot2M8pCVdUQOKqcu7pHNN6Sub"
                 },
                 {
-                    "type": "click",
-                    "name": "歌手简介",
-                    "key": "V1001_TODAY_SINGER"
-                },
-                {
-                    "name": "菜单",
-                    "sub_button": [
-                        {
-                            "type": "view",
-                            "name": "搜索",
-                            "url": "http://www.soso.com/"
-                        },
-                        {
-                            "type": "view",
-                            "name": "视频",
-                            "url": "http://v.qq.com/"
-                        },
-                        {
-                            "type": "click",
-                            "name": "赞一下我们",
-                            "key": "V1001_GOOD"
-                        }
-                    ]
+                    "type": "img",
+                    "name": "赞助点我",
+                    "key": "YboiSRUvyBc_r27AnwghWNG8k4Yw5ueqn4oK1j5HQd-LXhyN_UYMv0gHbNlCu4Oa"
                 }
             ]
         }
+    ]
+}

@@ -18,7 +18,6 @@ class ReplySystem(BaseMsg.MsgBase):
     #这里为自动回复的消息
     def TextReply(self, reply):
         #回复文字消息方法
-        print('Text reply')
         if not isinstance(reply, str):
             try:
                 reply = str(reply)
@@ -44,11 +43,11 @@ class ReplySystem(BaseMsg.MsgBase):
         reply = super().MsgCheck(reply)
         return reply
 
-    def KeyWordCheck(self, key, strings):
-        if strings.find(key, self.msg) is True and len(key) == len(strings):
+    def KeyWordCheck(self, key):
+        if self.msg.find(key) != -1 and len(key) == len(self.msg):
             #完全对应,返回true
             return True
-        elif strings.find(key, self.msg) is True:
+        elif self.msg.find(key) != -1:
             #不完全匹配，长度不对，返回false
             return False
         else:
@@ -79,10 +78,8 @@ class ReplySystem(BaseMsg.MsgBase):
         search=SearchServes.Serves()
         results = search.search(self.msg)
         if results is not None:
-            print(str(results))
             return self.ArticleReply(results)
         else:
-            print('Results is None')
             return self.TextReply('已经记录消息，等待回复')
 
     def auth(self, *args, **kwargs):
@@ -168,16 +165,19 @@ class ReplySystem(BaseMsg.MsgBase):
         #管理员操作
         from utils import ActiveOperate
         op = ActiveOperate.OperateSystem()
-        if self.KeyWordCheck('更新菜单', self.msg) is True:
+        if self.KeyWordCheck('更新菜单') is True:
             op.UpdateMenu()
             return self.TextReply('更新菜单成功')
-        elif self.KeyWordCheck('获取菜单', self.msg) is True:
+        elif self.KeyWordCheck('获取菜单') is True:
             op.GetMenu()
             return self.TextReply('获取菜单成功')
-        elif self.KeyWordCheck('更新素材', self.msg) is True:
+        elif self.KeyWordCheck('更新素材') is True:
             op.AutoChekingMaterialProcess()
             return self.TextReply('更新素材成功')
-        elif self.KeyWordCheck('退出', self.msg) is True:
+        elif self.KeyWordCheck('导出签到') is True:
+            op.ExportSignLog()
+            return self.TextReply('导出签到记录成功')
+        elif self.KeyWordCheck('退出') is True:
             self.db.update(CollectionName='user', by='openid', openid=self.source, type='normal')
             return self.TextReply('退出成功')
 
@@ -195,13 +195,12 @@ class ReplySystem(BaseMsg.MsgBase):
             #普通状态
             # 分为特殊关键字与检索
             # 签到类型
-            print(self.msg)
-            if self.KeyWordCheck('/h', self.msg) is True or self.KeyWordCheck('/help', self.msg) is True or self.KeyWordCheck('/帮助', self.msg) is True:
+            if self.KeyWordCheck('/h') is True or self.KeyWordCheck('/help') is True or self.KeyWordCheck('/帮助') is True:
                 return self.TextReply('帮助信息')
-            elif self.KeyWordCheck('签到', self.msg) is True:
+            elif self.KeyWordCheck('签到') is True:
                 return self.auth('sign', Welcom_auth_msg='请回复:QD+您的学号+姓名，例如：QD+111111111+王尼玛',
                           Auth_fail_msg='该账号已签到，请勿用同一账号签到！')
-            elif self.KeyWordCheck('admincp', self.msg) is True:
+            elif self.KeyWordCheck('admincp') is True:
                 return self.auth('adminlogin', Welcom_auth_msg='请输入:账号+密码用于登陆验证',
                           Auth_fail_msg='未知错误卧槽,args传入调用问题')
             # 其他文字为检索
@@ -209,19 +208,19 @@ class ReplySystem(BaseMsg.MsgBase):
                 return self.SearchProcess()
         elif result == 'sign':
             #签到状态
-            if self.KeyWordCheck('/h', self.msg) is True or self.KeyWordCheck('/help', self.msg) is True or self.KeyWordCheck('/帮助', self.msg) is True:
+            if self.KeyWordCheck('/h') is True or self.KeyWordCheck('/help') is True or self.KeyWordCheck('/帮助') is True:
                 return self.TextReply('签到帮助信息')
             else:
                 return self.SignProcess()
         elif result == 'adminlogin':
             #管理登陆状态
-            if self.KeyWordCheck('/h', self.msg) is True or self.KeyWordCheck('/help', self.msg) is True or self.KeyWordCheck('/帮助', self.msg) is True:
+            if self.KeyWordCheck('/h') is True or self.KeyWordCheck('/help') is True or self.KeyWordCheck('/帮助') is True:
                 return self.TextReply('管理登陆帮助信息')
             else:
                 return self.AdminAuthProcess()
         elif result == 'admin':
             # 管理状态
-            if self.KeyWordCheck('/h', self.msg) is True or self.KeyWordCheck('/help', self.msg) is True or self.KeyWordCheck('/帮助', self.msg) is True:
+            if self.KeyWordCheck('/h') is True or self.KeyWordCheck('/help') is True or self.KeyWordCheck('/帮助') is True:
                 return self.TextReply('管理帮助信息')
             else:
                 return self.AdminOperateProcess()

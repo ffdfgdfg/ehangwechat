@@ -87,8 +87,12 @@ class MongoUtil:
         TreeNewbeeStr = eval(TreeNewbeeStr)
     def prequery(self, CollectionName, by, *args, **kwargs):
         #也可以来计数     .count()
-        endstr = kwargs['kwargs'][str(by)]
-        TreeNewbeeStr = self.NewbeeStr(CollectionName, 'find({\'%s\': \'%s\'})' % (by, endstr))
+        if by is not None:
+            endstr = kwargs['kwargs'][str(by)]
+            TreeNewbeeStr = self.NewbeeStr(CollectionName, 'find({\'%s\': \'%s\'})' % (by, endstr))
+        else:
+            TreeNewbeeStr = self.NewbeeStr(CollectionName, 'find()')
+
         TreeNewbeeStr = eval(TreeNewbeeStr)
         return TreeNewbeeStr
     def query(self, CollectionName, by, *args, **kwargs):

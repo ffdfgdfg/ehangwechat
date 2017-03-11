@@ -71,6 +71,17 @@ class OperateSystem:
             self.client.menu.delete()
             self.client.menu.create(js)
 
+    def ExportSignLog(self):
+        signlog = self.db.query(CollectionName='signlog', by=None)
+        cont = 0
+        with open("menu.json", 'a+') as f:
+            f.write('学号     姓名')
+            for log in signlog:
+                cont = cont+1
+                f.write('%s %s' % (log['student_id'], log['student_name']))
+                self.db.delete(CollectionName='signlog', by='student_id', student_id=log['student_id'])
+            f.write('总人数：%d' % (cont))
+
     def AutoChekingMaterialProcess(self, *args, **kwargs):
         #检测更新素材,任务计划是在tornado的ioloop里面
         import time

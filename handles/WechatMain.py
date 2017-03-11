@@ -20,7 +20,7 @@ class wechat(tornado.web.RequestHandler):
         if body.type is 'text':
             content = body.content  # 消息内容
             #消息内容用于实例化自动回复类
-            auto_reply = PassiveReply.ReplySystem(content, source=body.source)
+            auto_reply = PassiveReply.ReplySystem(content, source=body.source, time=body.create_time)
             if len(body.content.replace(' ', '')) is 0:
                 return None
             reply = auto_reply.TextMsgProcess()
@@ -168,14 +168,16 @@ class wechat(tornado.web.RequestHandler):
 
                 # 消息处理后结果回复
                 try:
-                    id = msg.id  # 消息 id, 64 位整型。
-                    target = msg.target  # 消息的目标用户
-                    source = msg.source  # 消息的来源用户，即发送消息的用户。
-                    time = msg.time  # 消息的发送时间，UNIX 时间戳
-                    type = msg.type  # 消息的类型
-                    if type is 'event':  # 事件类型分类
-                        event = msg.event
-                    ReplyContent = self.Wechat_msg_Process(msg.content, source=source, time=time)
+                    # msg.id  # 消息 id, 64 位整型。
+                    # msg.target  # 消息的目标用户
+                    # msg.source  # 消息的来源用户，即发送消息的用户。
+                    # msg.time  # 消息的发送时间，UNIX 时间戳
+                    # msg.type  # 消息的类型
+                    # if type is 'event':  # 事件类型分类
+                        # event = msg.event
+                    ReplyContent = self.Wechat_msg_Process(msg)
+                    if settings['debug'] is True:
+                        print('%s\n%s' % (msg.content, ReplyContent))
                     if ReplyContent is not None:
                         # 消息处理为xml
                         result = create_reply(ReplyContent, message=msg)
