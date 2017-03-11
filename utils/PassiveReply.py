@@ -125,16 +125,14 @@ class ReplySystem(BaseMsg.MsgBase):
                 # 完全匹配成功
                 if self.db.query(CollectionName='signlog', by='openid', openid=self.source) is None and \
                                 self.db.query(CollectionName='signlog', by='student_id', student_id=student_id) is None:
+                    #当签到表中没有找到学号和openid，可以签到  记录信息，恢复用户状态
                     self.db.insert(CollectionName='signlog', openid=self.source, student_id=student_id, student_name=student_name)
                     self.db.update(CollectionName='user', by='openid', openid=self.source, type='normal')
                     return self.TextReply('签到成功！')
-                elif self.db.query(CollectionName='signlog', by='student_id', student_id=student_id)['student_id'] == student_id:
+                elif self.db.query(CollectionName='signlog', by='student_id', student_id=student_id)[0]['student_id'] == student_id:
+                    #注意有内容的为list
                     self.db.update(CollectionName='user', by='openid', openid=self.source, type='normal')
                     return self.TextReply('该学号已签到！若想签到另外的学号，请重新回复 签到')
-                elif self.db.query(CollectionName='signlog', by='openid', openid=self.source)['openid'] == self.source \
-                        and self.db.query(CollectionName='signlog', by='student_id', student_id=student_id)['student_id'] == student_id:
-                    self.db.update(CollectionName='user', by='openid', openid=self.source, type='normal')
-                    return self.TextReply('已签到成功')
             else:
                 return self.TextReply('请输入中文姓名！！')
         else:
@@ -142,7 +140,7 @@ class ReplySystem(BaseMsg.MsgBase):
 
     def AdminAuthProcess(self):
         # 匹配用户名和密码
-        admin = re.compile(r'(.)\+(.)')
+        admin = re.compile(r'(.{1,20})\+(.{6,20})')
         match_admin = admin.match(self.msg)
         if match_admin is not None:
             username = match_admin.group(1)
@@ -154,8 +152,7 @@ class ReplySystem(BaseMsg.MsgBase):
         if result is not None:
             # 在管理表中存在
             # 验证账号密码
-            if result['password'] == password:
-                self.db.update(CollectionName='adminauth', by='username', username=username, access='online')
+            if result[0]['password'] == password:
                 self.db.update(CollectionName='user', by='openid', openid=self.source, type='admin')
                 return self.TextReply('登陆成功')
             else:
@@ -180,6 +177,8 @@ class ReplySystem(BaseMsg.MsgBase):
         elif self.KeyWordCheck('退出') is True:
             self.db.update(CollectionName='user', by='openid', openid=self.source, type='normal')
             return self.TextReply('退出成功')
+        else:
+            return self.TextReply('无指令')
 
     def TextMsgProcess(self):
         #消息处理方法，用于区分用户状态，并根据输入的语句选择方法发送    处理文字消息
@@ -189,7 +188,7 @@ class ReplySystem(BaseMsg.MsgBase):
             pass
         else:
             #获取用户类型
-            result = result['type']
+            result = result[0]['type']
 
         if result is None or result == 'normal':
             #普通状态

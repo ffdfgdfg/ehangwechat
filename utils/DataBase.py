@@ -103,10 +103,13 @@ class MongoUtil:
             if result.count() == 0:
                 return None
             else:
-                return result[0]
+                resultitem = []
+                for oneresult in result:
+                    resultitem.append(oneresult)
+                return resultitem #为一个list
     def update(self, CollectionName, by, *args, **kwargs):
-        #其实为upsert，update+insert
+        #, upsert=True
         updated = kwargs
         middlestr = kwargs[by]
-        TreeNewbeeStr = self.NewbeeStr(CollectionName, "update({\'%s\': \'%s\'}, %s, upsert=True)" % (by, middlestr, updated))
+        TreeNewbeeStr = self.NewbeeStr(CollectionName, "update({\'%s\': \'%s\'}, %s)" % (by, middlestr, updated))
         TreeNewbeeStr = eval(TreeNewbeeStr)

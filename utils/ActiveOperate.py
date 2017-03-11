@@ -40,13 +40,16 @@ class OperateSystem:
 
     def GetMaterial(self, *args, **kwargs):
         #获取素材
-        count = self.client.material.get_count()
-        if self.db.query(CollectionName='oplog', by='materialcount', materialcount=count) is None:
+        count = self.client.material.get_count()  #貌似sdk已经转换了json了
+        NewsCount = count['news_count'] #image,voice,video
+        if self.db.query(CollectionName='oplog', by='materialcount', materialcount=NewsCount) is None:
             self.db.update(CollectionName='oplog', by='id', id=1, materialcount=0)
-            HavingMaterial=self.db.query(CollectionName='oplog', by='id', id=1)['materialcount']
+            HavingMaterial=self.db.query(CollectionName='oplog', by='id', id=1) #传递回来的为一个list【dict】
             if HavingMaterial is None:
                 HavingMaterial = 0
-            ArticlesDic = json.loads(self.client.api.WeChatMaterial.batchget('news', offset=HavingMaterial, count=20))
+            else:
+                HavingMaterial = HavingMaterial[0]['materialcount']
+            ArticlesDic = self.client.material.batchget('news', offset=HavingMaterial, count=20)
             articles = ArticlesDic['item']
             add=SearchServes.Serves()
             for article in articles:
@@ -72,15 +75,20 @@ class OperateSystem:
             self.client.menu.create(js)
 
     def ExportSignLog(self):
-        signlog = self.db.query(CollectionName='signlog', by=None)
-        cont = 0
-        with open("menu.json", 'a+') as f:
-            f.write('学号     姓名')
-            for log in signlog:
-                cont = cont+1
-                f.write('%s %s' % (log['student_id'], log['student_name']))
-                self.db.delete(CollectionName='signlog', by='student_id', student_id=log['student_id'])
-            f.write('总人数：%d' % (cont))
+        import time
+        with open("签到记录.txt", 'a+') as f:
+            header = '\n--------------------------------\n%s\n学号     姓名\n' % (time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
+            f.write(header)
+            signlog = self.db.query(CollectionName='signlog', by=None)
+            if signlog is not None:
+                for log in signlog:
+                    logstr = '%s %s\n' % (log['student_id'], log['student_name'])
+                    f.write(logstr)
+                    self.db.delete(CollectionName='signlog', by='student_id', student_id=log['student_id'])
+                endstr = '总人数：%d' % (signlog.count())
+            else:
+                endstr = '总人数：0'
+            f.write(endstr)
 
     def AutoChekingMaterialProcess(self, *args, **kwargs):
         #检测更新素材,任务计划是在tornado的ioloop里面
