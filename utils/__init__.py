@@ -1,1 +1,1 @@
-__all__ = ['PassiveReply', 'DataBase', 'ActiveOperate', 'SearchServes',]
+__all__ = ['PassiveReply', 'DataBase', 'ActiveOperate', 'SearchServes', 'BaseMsg',]

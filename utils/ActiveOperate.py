@@ -42,7 +42,7 @@ class OperateSystem:
         #获取素材
         count = self.client.material.get_count()
         if self.db.query(CollectionName='oplog', by='materialcount', materialcount=count) is None:
-            self.db.update(CollectionName='oplog', by='id', id=1)
+            self.db.update(CollectionName='oplog', by='id', id=1, materialcount=0)
             HavingMaterial=self.db.query(CollectionName='oplog', by='id', id=1)['materialcount']
             if HavingMaterial is None:
                 HavingMaterial = 0

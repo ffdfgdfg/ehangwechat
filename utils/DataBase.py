@@ -47,6 +47,7 @@ class adminauth(Base):
 '''
 
 class MongoUtil:
+    presult = {}
     def __init__(self, db_host=databasesettings['host'], db_name=databasesettings['dbname']):
         self.db_ip = db_host
         self.db_name = db_name
@@ -76,24 +77,31 @@ class MongoUtil:
 
     def insert(self, CollectionName, *args, **kwargs):
         new = kwargs
-        TreeNewbeeStr = self.NewbeeStr(CollectionName, 'insert(new)')
-        exec (TreeNewbeeStr)
+        TreeNewbeeStr = self.NewbeeStr(CollectionName, 'insert(%s)' % str(new))
+        TreeNewbeeStr=eval(TreeNewbeeStr)
 
     def delete(self, CollectionName, by, *args, **kwargs):
-        TreeNewbeeStr = self.NewbeeStr(CollectionName, "remove({'%s': kwargs[by]})" % (by))
-        exec(TreeNewbeeStr)
+        endstr = kwargs[by]
+        TreeNewbeeStr = self.NewbeeStr(CollectionName, "remove({\'%s\': \'%s\'})" % (by, endstr))
+        TreeNewbeeStr = eval(TreeNewbeeStr)
     def prequery(self, CollectionName, by, *args, **kwargs):
         #也可以来计数     .count()
-        TreeNewbeeStr = self.NewbeeStr(CollectionName, "find({'%s': kwargs[by]})" % (by))
-        return exec(TreeNewbeeStr)
+        endstr = kwargs['kwargs'][str(by)]
+        TreeNewbeeStr = self.NewbeeStr(CollectionName, 'find({\'%s\': \'%s\'})' % (by, endstr))
+        TreeNewbeeStr = eval(TreeNewbeeStr)
+        return TreeNewbeeStr
     def query(self, CollectionName, by, *args, **kwargs):
         result=self.prequery(CollectionName=CollectionName, by=by, kwargs=kwargs)
-        if result.count() == 0:
+        if result is None:
             return None
         else:
-            return result[0]
+            if result.count() == 0:
+                return None
+            else:
+                return result[0]
     def update(self, CollectionName, by, *args, **kwargs):
         #其实为upsert，update+insert
         updated = kwargs
-        TreeNewbeeStr = self.NewbeeStr(CollectionName, "update({'%s': kwargs[by]}, updated, upsert=True)" % (by))
-        exec(TreeNewbeeStr)
+        middlestr = kwargs[by]
+        TreeNewbeeStr = self.NewbeeStr(CollectionName, "update({\'%s\': \'%s\'}, %s, upsert=True)" % (by, middlestr, updated))
+        TreeNewbeeStr = eval(TreeNewbeeStr)

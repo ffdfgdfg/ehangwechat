@@ -3,11 +3,10 @@ import os
 from whoosh.index import create_in
 from whoosh.fields import *
 from jieba.analyse import ChineseAnalyzer
+from utils import BaseMsg
 
-class Serves:
+class Serves(BaseMsg.MsgBase):
     def __init__(self):
-        pass
-    def __enter__(self):
         # 搜索对象的方法
         # 使用结巴中文分词
         analyzer = ChineseAnalyzer()
@@ -21,11 +20,27 @@ class Serves:
         if not os.path.exists(indexdir):
             os.mkdir(indexdir)
         self.ix = create_in(indexdir, schema)
+
     def search(self, key):
         # 创建一个检索器
         searcher = self.ix.searcher()
         # 检索标题中出现'文档'的文档
-        return searcher.find("title", u'%s' % (key) or "description", u'%s' % (key))
+        results_title = searcher.find("title", u'%s' % (key))
+        results_description = searcher.find("description", u'%s' % (key))
+
+        results_title = super().MsgCheck(results_title)
+        results_description = super().MsgCheck(results_description)
+
+        # 数据格式为dict{'title':.., 'content':...}
+        if results_title is not None:
+            firstdoc = results_title[0:1]
+            if results_description is not None:
+                firstdoc.append(results_description[0])
+            else:
+                pass
+        else:
+            firstdoc = None
+        return firstdoc
     def AddIndex(self, DictItem):
         #添加检索列表
         # 按照schema定义信息，增加需要建立索引的文档

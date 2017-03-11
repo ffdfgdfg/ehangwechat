@@ -13,14 +13,10 @@ settings = {
             'UpdatePeriod': 5*3600,
             }
 
-from handles import *
-
-web_handlers = [
-        (r'/', WechatMain.wechat),
-        ]
 
 #wechat
 wechatsettings = {
+'checksignature': True,
 'token': 'wobuzhidao',
 'appid': 'wx0c1e2161428c94a0',
 'appsecret': '9c3954920e8d104d96e2363195349ae6',
