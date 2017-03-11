@@ -47,5 +47,5 @@ class Serves(BaseMsg.MsgBase):
         # 注意：字符串格式需要为unicode格式
         writer = self.ix.writer()
         writer.add_document(title=u'%s' % (DictItem['title']), description=u'%s' % (DictItem['digest']),
-                            image=u'%s' % (DictItem['thumb_media_id']), url=u'%s' % (DictItem['media_id']))
+                            image=u'%s' % (DictItem['thumb_media_id']), url=u'%s' % (DictItem['url']))
         writer.commit()

@@ -28,6 +28,7 @@ class comlog(Base):
     openid = Column(String(40))
     msg = Column(String)
     reply = Column(String)
+    time = Column(String)
 
 class signlog(Base):
     __tablename__ = 'signlog'

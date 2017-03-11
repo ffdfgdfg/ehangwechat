@@ -50,8 +50,11 @@ class OperateSystem:
             articles = ArticlesDic['item']
             add=SearchServes.Serves()
             for article in articles:
-                add.AddIndex(article)
-                self.db.update(CollectionName='oplog', by='id', id=1, materialcount=HavingMaterial+1)
+                media_id = article['media_id']
+                news_items = article['content']['news_item']
+                for news_item in news_items:
+                    add.AddIndex(news_item)
+                    self.db.update(CollectionName='oplog', by='id', id=1, materialcount=HavingMaterial + 1)
 
     def GetMenu(self, *args, **kwargs):
         #获取当前菜单

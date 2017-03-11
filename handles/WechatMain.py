@@ -175,7 +175,7 @@ class wechat(tornado.web.RequestHandler):
                     type = msg.type  # 消息的类型
                     if type is 'event':  # 事件类型分类
                         event = msg.event
-                    ReplyContent = self.Wechat_msg_Process(msg, source=source)
+                    ReplyContent = self.Wechat_msg_Process(msg.content, source=source, time=time)
                     if ReplyContent is not None:
                         # 消息处理为xml
                         result = create_reply(ReplyContent, message=msg)
