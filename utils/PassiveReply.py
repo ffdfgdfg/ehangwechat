@@ -86,25 +86,25 @@ class ReplySystem(BaseMsg.MsgBase):
     def auth(self, *args, **kwargs):
         #预认证过程，用于改变用户类型
         #需要传入args验证类型,kwargs欢迎消息，失败消息
-        if self.db.query(CollectionName='user', by='openid', openid=self.source) is None:
+        if self.db.query('user', 'openid', openid=self.source) is None:
             # 数据表中不存在，插入数据
-            self.db.insert(CollectionName='user', openid=self.source, nickname='', type=args[0])
+            self.db.insert('user', self.source, nickname='', type=args[0])
             # 回复欢迎验证消息
             return self.TextReply(kwargs['Welcom_auth_msg'])
-        elif self.db.query(CollectionName='user', by='openid', openid=self.source) is not None:
+        elif self.db.query('user', 'openid', openid=self.source) is not None:
             # 数据表中存在用户
             if args[1] == 'two':
-                if self.db.query(CollectionName='signlog', by='openid', openid=self.source) is not None:
+                if self.db.query('signlog', 'openid', openid=self.source) is not None:
                     # 验证失败，发送失败消息
                     return self.TextReply(kwargs['Auth_fail_msg'])
                 else:
                     # 改变用户状态
-                    self.db.update(CollectionName='user', by='openid', openid=self.source, type=args[0])
+                    self.db.update('user', 'openid', openid=self.source, type=args[0])
                     # 回复欢迎验证消息
                     return self.TextReply(kwargs['Welcom_auth_msg'])
             elif args[1] == 'one':
                 # 直接改变用户状态，进入下一步验证
-                self.db.update(CollectionName='user', by='openid', openid=self.source, type=args[0])
+                self.db.update('user', 'openid', openid=self.source, type=args[0])
                 # 发送欢迎验证消息
                 return self.TextReply(kwargs['Welcom_auth_msg'])
             else:
@@ -124,15 +124,15 @@ class ReplySystem(BaseMsg.MsgBase):
                 student_id = match_student.group(1)
                 student_name = match_student.group(2)
                 # 完全匹配成功
-                if self.db.query(CollectionName='signlog', by='openid', openid=self.source) is None and \
-                                self.db.query(CollectionName='signlog', by='student_id', student_id=student_id) is None:
+                if self.db.query('signlog', 'openid', openid=self.source) is None and \
+                                self.db.query('signlog', 'student_id', student_id=student_id) is None:
                     #当签到表中没有找到学号和openid，可以签到  记录信息，恢复用户状态
-                    self.db.insert(CollectionName='signlog', openid=self.source, student_id=student_id, student_name=student_name)
-                    self.db.update(CollectionName='user', by='openid', openid=self.source, type='normal')
+                    self.db.insert('signlog', openid=self.source, student_id=student_id, student_name=student_name)
+                    self.db.update('user', 'openid', openid=self.source, type='normal')
                     return self.TextReply('签到成功！')
-                elif self.db.query(CollectionName='signlog', by='student_id', student_id=student_id)[0]['student_id'] == student_id:
+                elif self.db.query('signlog', 'student_id', student_id=student_id)[0]['student_id'] == student_id:
                     #注意有内容的为list
-                    self.db.update(CollectionName='user', by='openid', openid=self.source, type='normal')
+                    self.db.update('user', 'openid', openid=self.source, type='normal')
                     return self.TextReply('该学号已签到！若想签到另外的学号，请重新回复 签到')
             else:
                 return self.TextReply('请输入中文姓名！！')
@@ -147,17 +147,17 @@ class ReplySystem(BaseMsg.MsgBase):
             username = match_admin.group(1)
             password = match_admin.group(2)
         else:
-            self.db.update(CollectionName='user', by='openid', openid=self.source, type='normal')
+            self.db.update('user', 'openid', openid=self.source, type='normal')
             return self.TextReply('输入格式有误,请重新回复admincp登陆')
-        result = self.db.query(CollectionName='adminauth', by='username', username=username)
+        result = self.db.query('adminauth', 'username', username=username)
         if result is not None:
             # 在管理表中存在
             # 验证账号密码
             if result[0]['password'] == password:
-                self.db.update(CollectionName='user', by='openid', openid=self.source, type='admin')
+                self.db.update('user', 'openid', openid=self.source, type='admin')
                 return self.TextReply('登陆成功')
             else:
-                self.db.update(CollectionName='user', by='openid', openid=self.source, type='normal')
+                self.db.update('user', 'openid', openid=self.source, type='normal')
                 return self.TextReply('账号或密码验证失败,请重新回复admincp登陆')
     def AdminOperateProcess(self):
         #管理员操作
@@ -176,7 +176,7 @@ class ReplySystem(BaseMsg.MsgBase):
             op.ExportSignLog()
             return self.TextReply('导出签到记录成功')
         elif self.KeyWordCheck('退出') is True:
-            self.db.update(CollectionName='user', by='openid', openid=self.source, type='normal')
+            self.db.update('user', 'openid', openid=self.source, type='normal')
             return self.TextReply('退出成功')
         else:
             return self.TextReply('无指令')
@@ -185,7 +185,7 @@ class ReplySystem(BaseMsg.MsgBase):
         import requests
         import traceback
         if self.KeyWordCheck('退出') is True:
-            self.db.update(CollectionName='user', by='openid', openid=self.source, type='normal')
+            self.db.update('user', 'openid', openid=self.source, type='normal')
             return self.TextReply('退出成功')
 
         body = {'key':tulingsettings['key'], 'info': self.msg.encode('utf-8')}
@@ -209,7 +209,7 @@ class ReplySystem(BaseMsg.MsgBase):
     def TextMsgProcess(self):
         #消息处理方法，用于区分用户状态，并根据输入的语句选择方法发送    处理文字消息
         # 需要先区分用户状态
-        result = self.db.query(CollectionName='user', by='openid', openid=self.source)
+        result = self.db.query('user', 'openid', openid=self.source)
         if result is None:
             pass
         else:
@@ -259,7 +259,7 @@ class ReplySystem(BaseMsg.MsgBase):
                 return self.ChatRobot()
         #不满足自动回复的任何条件
         else:
-            self.db.insert(CollectionName='comlog', openid=self.source, msg=self.msg, time=self.time)
+            self.db.insert('comlog', openid=self.source, msg=self.msg, time=self.time)
             return self.TextReply("已经记录消息，等待回复")
 
     def ClickEventProcess(self, key):
