@@ -115,14 +115,14 @@ class ReplySystem(BaseMsg.MsgBase):
 
     def SignProcess(self):
         #签到的方法
-        student = re.compile(r'(QD)\+(\d{9})\+(.{2,8})')  # 匹配签到的正则表达式
+        student = re.compile(r'(\d{9})\+(.{2,8})')  # 匹配签到的正则表达式
         Chi = re.compile(u"([\u4e00-\u9fff]+)")  # 匹配中文的正则表达式
         match_student = student.match(self.msg)  # 匹配签到
         if match_student is not None:
-            match_chinese = Chi.match(match_student.group(3))  # 匹配中文
+            match_chinese = Chi.match(match_student.group(2))  # 匹配中文
             if match_chinese is not None:
-                student_id = match_student.group(2)
-                student_name = match_student.group(3)
+                student_id = match_student.group(1)
+                student_name = match_student.group(2)
                 # 完全匹配成功
                 if self.db.query(CollectionName='signlog', by='openid', openid=self.source) is None and \
                                 self.db.query(CollectionName='signlog', by='student_id', student_id=student_id) is None:
@@ -223,7 +223,7 @@ class ReplySystem(BaseMsg.MsgBase):
             if self.KeyWordCheck('/h') is True or self.KeyWordCheck('/help') is True or self.KeyWordCheck('/帮助') is True:
                 return self.TextReply('回复 签到 即可签到\n回复 admincp 进入管理模式\n回复 聊天 与公众号聊天\n任意回复的文字会检索,没有任何结果会记录')
             elif self.KeyWordCheck('签到') is True:
-                return self.auth('sign', 'two', Welcom_auth_msg='请回复:QD+您的学号+姓名，例如：QD+111111111+王尼玛',
+                return self.auth('sign', 'two', Welcom_auth_msg='请回复:您的学号+姓名，例如：111111111+王尼玛',
                           Auth_fail_msg='该账号已签到，请勿用同一账号签到！')
             elif self.KeyWordCheck('admincp') is True:
                 return self.auth('adminlogin', 'one', Welcom_auth_msg='请输入:账号+密码用于登陆验证',
@@ -237,7 +237,7 @@ class ReplySystem(BaseMsg.MsgBase):
         elif result == 'sign':
             #签到状态
             if self.KeyWordCheck('/h') is True or self.KeyWordCheck('/help') is True or self.KeyWordCheck('/帮助') is True:
-                return self.TextReply('请回复:QD+您的学号+姓名，例如：QD+111111111+王尼玛  不要重复签到  不要签错了')
+                return self.TextReply('请回复:您的学号+姓名，例如：111111111+王尼玛  不要重复签到  不要签错了')
             else:
                 return self.SignProcess()
         elif result == 'adminlogin':
