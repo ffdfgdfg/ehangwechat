@@ -1,6 +1,5 @@
 {
-    "button":
-    [
+    "button": [
         {
             "type": "view",
             "name": "易频道",
@@ -13,18 +12,17 @@
         },
         {
             "name": "联系我们",
-            "sub_button":
-            [
+            "sub_button": [
                 {
-                    "type": "img",
-                    "name": "易拍报名",
-                    "key": "WMINgCODBlLQrkq_BKf7x4Yc3NfvVSUlH3yRfhPot2M8pCVdUQOKqcu7pHNN6Sub"
-                },
-                {
-                    "type": "img",
-                    "name": "赞助点我",
-                    "key": "YboiSRUvyBc_r27AnwghWNG8k4Yw5ueqn4oK1j5HQd-LXhyN_UYMv0gHbNlCu4Oa"
-                }
+            "type": "view",
+            "name": "易航网",
+            "url": "http://ehang.ffdfgdfg.com.cn"
+        },
+        {
+            "type": "view",
+            "name": "子菜单测试",
+            "url": "http://www.cauc.edu.cn"
+        }
             ]
         }
     ]

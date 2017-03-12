@@ -28,7 +28,7 @@ class ReplySystem(BaseMsg.MsgBase):
         return reply
     def ArticleReply(self, reply):
         #回复文章消息方法
-        if not isinstance(reply, list) or isinstance(reply, dict):
+        if not isinstance(reply, list): #回复一个list,包含多个dict，发送多个文章
             raise TypeError('Expected a list or dict')
         reply = super().MsgCheck(reply)
         return reply

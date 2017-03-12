@@ -2,16 +2,26 @@
 #主动操作部分，主要为更新、获取菜单，获取素材,获取用户信息等
 from wechatpy import WeChatClient
 import json
+import time
 from config import *
 from utils import DataBase
 from utils import SearchServes
 
 class OperateSystem:
     def __init__(self):
-        # 实例化client类
-        self.client = WeChatClient(wechatsettings['appid'], wechatsettings['appsecret'])
         # 实例化database类
         self.db = DataBase.MongoUtil()
+        oplog = self.db.query(CollectionName='oplog', by=None)[0]
+        oldtime = oplog['gettokentime']
+        token = oplog['token']
+        if time.time() - oldtime > 7000 :
+            #刷新token
+            client = WeChatClient(wechatsettings['appid'], wechatsettings['appsecret'])
+            token = client.fetch_access_token()
+            self.db.update(CollectionName='oplog', by='gettokentime', gettokentime=oldtime, token=token)
+            self.db.update(CollectionName='oplog', by='token', token=token, gettokentime=time.time())
+        #实例化client
+        self.client = WeChatClient(wechatsettings['appid'], wechatsettings['appsecret'], access_token=token)
 
     def GetUserInformation(self, openid, *args, **kwargs):
         #获取用户信息
@@ -42,22 +52,25 @@ class OperateSystem:
         #获取素材
         count = self.client.material.get_count()  #貌似sdk已经转换了json了
         NewsCount = count['news_count'] #image,voice,video
-        if self.db.query(CollectionName='oplog', by='materialcount', materialcount=NewsCount) is None:
-            self.db.update(CollectionName='oplog', by='id', id=1, materialcount=0)
-            HavingMaterial=self.db.query(CollectionName='oplog', by='id', id=1) #传递回来的为一个list【dict】
-            if HavingMaterial is None:
-                HavingMaterial = 0
-            else:
-                HavingMaterial = HavingMaterial[0]['materialcount']
-            ArticlesDic = self.client.material.batchget('news', offset=HavingMaterial, count=20)
-            articles = ArticlesDic['item']
-            add=SearchServes.Serves()
-            for article in articles:
-                media_id = article['media_id']
-                news_items = article['content']['news_item']
-                for news_item in news_items:
-                    add.AddIndex(news_item)
-                    self.db.update(CollectionName='oplog', by='id', id=1, materialcount=HavingMaterial + 1)
+        if self.db.query(CollectionName='oplog', by=None) is None:
+            self.db.insert(CollectionName='oplog', materialcount=0)
+        HavingMaterial=self.db.query(CollectionName='oplog', by=None)[0]['materialcount'] #传递回来的为一个list【dict】
+        MaterialsDic = self.client.material.batchget('news', offset=HavingMaterial, count=20)
+        addser = SearchServes.Serves()
+        items = MaterialsDic['item']
+        for item in items:
+            # 这才是内容的dict
+            media_id = item['media_id']
+            content = item['content']
+            news_items = content['news_item']
+            for news_item in news_items:
+                # 文章的dict
+                title = news_item['title']
+                description = news_item['digest']
+                url = news_item['url']
+                thumb_url = news_item['thumb_url']
+                addser.AddIndex(news_item)  # 传入的字典包含很多信息，只存储上面几个
+                self.db.update(CollectionName='oplog', by='id', id=1, materialcount=HavingMaterial + 1)
 
     def GetMenu(self, *args, **kwargs):
         #获取当前菜单
@@ -74,6 +87,19 @@ class OperateSystem:
             self.client.menu.delete()
             self.client.menu.create(js)
 
+    def UploadPic(self, path):
+        with open(path, 'rb') as f:
+            return self.client.material.add('image', f)
+
+    def AddArticle(self, pic):
+        with open('article.json') as f:
+            articles = json.loads(f.read())['articles']
+            articles_dat = []
+            for article in articles:
+                article['thumb_media_id'] = pic
+                articles_dat.append(article)
+            return self.client.material.add_articles(articles_dat)
+
     def ExportSignLog(self):
         import time
         with open("签到记录.txt", 'a+') as f:
@@ -85,7 +111,7 @@ class OperateSystem:
                     logstr = '%s %s\n' % (log['student_id'], log['student_name'])
                     f.write(logstr)
                     self.db.delete(CollectionName='signlog', by='student_id', student_id=log['student_id'])
-                endstr = '总人数：%d' % (signlog.count())
+                endstr = '总人数：%d' % (len(signlog))
             else:
                 endstr = '总人数：0'
             f.write(endstr)
