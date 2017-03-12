@@ -72,7 +72,7 @@ class wechat(tornado.web.RequestHandler):
             elif body.event is 'click':  # 点击菜单拉取消息事件
                 key = body.key                       # 自定义菜单 key 值
 
-                auto_reply = PassiveReply.ReplySystem(body.content)
+                auto_reply = PassiveReply.ReplySystem(body, source=body.source, time=body.create_time)
                 return auto_reply.ClickEventProcess(key)
             elif body.event is 'view':  # 点击菜单跳转链接事件
                 url = body.url                        # 跳转链接 url
