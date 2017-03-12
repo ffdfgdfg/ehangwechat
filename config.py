@@ -34,3 +34,7 @@ databasesettings = {
 'dbname': 'wechat',
 }
 
+tulingsettings = {
+    'key':'014c4a0b2e334474a958b9a878cf602f',
+    'url':'http://www.tuling123.com/openapi/api',
+}

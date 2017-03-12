@@ -14,7 +14,7 @@ articledic = {
                         'content': '测试号真tm不好用',
                         'url': 'http://mp.weixin.qq.com/s?__biz=MzIwNDI1OTA4NQ==&mid=100000006&idx=1&sn=37b5ecfa5eb4099c43048ef1a8c199cf&chksm=16c3ab6421b4227292c9cac75e7e8d2ab46b4c3be21c18c71f3911356bb074a73ab7b96c3b79#rd',
                         'show_cover_pic': 1,
-                        'title': '文章测试233',
+                        'title': '我不知道',
                         'content_source_url': '',
                         'author': 'test',
                         'digest': '卧槽成功了',
@@ -51,7 +51,7 @@ articledic = {
 }
 
 addser = SearchServes.Serves()
-'''
+
 items = articledic['item']
 for item in items:
     #这才是内容的dict
@@ -66,6 +66,6 @@ for item in items:
         thumb_url = news_item['thumb_url']
         addser.AddIndex(news_item)
     print('添加记录成功！')
-'''
+
 
 print(addser.search('测试'))

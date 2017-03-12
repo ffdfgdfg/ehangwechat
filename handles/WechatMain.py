@@ -28,28 +28,33 @@ class wechat(tornado.web.RequestHandler):
         elif body.type is 'image':
             picurl = body.image                     # PicUrl
             media_id = body.media_id                 # MediaId
+            return '这图片真好看'
         elif body.type is 'voice':
             media_id = body.media_id                 # MediaId
             format = body.format                     # Format
             recognition = body.recognition           # Recognition
+            return '你说什么我听不清'
         elif body.type is 'video' or body.type is 'shortvideo':
             media_id = body.media_id                 # MediaId
             thumb_media_id = body.thumb_media_id     # ThumbMediaId
+            return '看不懂'
         elif body.type is 'location':  # location
             location_x = body.location_x  # 地理位置纬度
             location_y = body.location_y  # 地理位置经度
             scale = body.scale  # 地图缩放大小
             label = body.label  # 地理位置信息
             location = body.location  # (纬度, 经度) 元组
+            return '我看到你了'
         elif body.type is 'link':
             title = body.title  # 链接标题
             description = body.description  # 链接描述
             url = body.url  # 链接地址
+            return '这个链接打不开'
 
         #事件类型预处理
         elif body.type is 'event':
             if body.event is 'subscribe':  # subscribe
-                return '欢迎关注'
+                return '欢迎关注,尝试回复/h,/help,/帮助,获取帮助'
             elif body.event is 'unsubscribe':  # unsubscribe
                 db=DataBase.MongoUtil()
                 db.delete(CollectionName='user', by='openid', openid=body.source)
@@ -68,7 +73,7 @@ class wechat(tornado.web.RequestHandler):
                 key = body.key                       # 自定义菜单 key 值
 
                 auto_reply = PassiveReply.ReplySystem(body.content)
-                auto_reply.ClickEventProcess(key)
+                return auto_reply.ClickEventProcess(key)
             elif body.event is 'view':  # 点击菜单跳转链接事件
                 url = body.url                        # 跳转链接 url
                 return url
@@ -177,7 +182,7 @@ class wechat(tornado.web.RequestHandler):
                         # event = msg.event
                     ReplyContent = self.Wechat_msg_Process(msg)
                     if settings['debug'] is True:
-                        print('%s\n%s' % (msg.content, ReplyContent))
+                        print('%s\n%s' % (msg, ReplyContent))
                     if ReplyContent is not None:
                         # 消息处理为xml
                         result = create_reply(ReplyContent, message=msg)

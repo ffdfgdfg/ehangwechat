@@ -5,6 +5,7 @@ import re
 from utils import DataBase
 from utils import SearchServes
 from utils import BaseMsg
+from config import *
 
 class ReplySystem(BaseMsg.MsgBase):
     __doc__ = '''自动回复类'''
@@ -92,7 +93,7 @@ class ReplySystem(BaseMsg.MsgBase):
             return self.TextReply(kwargs['Welcom_auth_msg'])
         elif self.db.query(CollectionName='user', by='openid', openid=self.source) is not None:
             # 数据表中存在用户
-            if args[0] == 'sign':
+            if args[1] == 'two':
                 if self.db.query(CollectionName='signlog', by='openid', openid=self.source) is not None:
                     # 验证失败，发送失败消息
                     return self.TextReply(kwargs['Auth_fail_msg'])
@@ -101,7 +102,7 @@ class ReplySystem(BaseMsg.MsgBase):
                     self.db.update(CollectionName='user', by='openid', openid=self.source, type=args[0])
                     # 回复欢迎验证消息
                     return self.TextReply(kwargs['Welcom_auth_msg'])
-            elif args[0] == 'adminlogin':
+            elif args[1] == 'one':
                 # 直接改变用户状态，进入下一步验证
                 self.db.update(CollectionName='user', by='openid', openid=self.source, type=args[0])
                 # 发送欢迎验证消息
@@ -180,6 +181,31 @@ class ReplySystem(BaseMsg.MsgBase):
         else:
             return self.TextReply('无指令')
 
+    def ChatRobot(self):
+        import requests
+        import traceback
+        if self.KeyWordCheck('退出') is True:
+            self.db.update(CollectionName='user', by='openid', openid=self.source, type='normal')
+            return self.TextReply('退出成功')
+
+        body = {'key':tulingsettings['key'], 'info': self.msg.encode('utf-8')}
+        r = requests.post(tulingsettings['url'], data=body)
+        r.encoding = 'utf-8'
+        resp = r.text
+        if resp is None or len(resp) == 0:
+            return None
+        try:
+            js = json.loads(resp)
+            if js['code'] == 100000:
+                return js['text'].replace('<br>', '\n')
+            elif js['code'] == 200000:
+                return js['url']
+            else:
+                return None
+        except Exception:
+            traceback.print_exc()
+            return None
+
     def TextMsgProcess(self):
         #消息处理方法，用于区分用户状态，并根据输入的语句选择方法发送    处理文字消息
         # 需要先区分用户状态
@@ -195,34 +221,42 @@ class ReplySystem(BaseMsg.MsgBase):
             # 分为特殊关键字与检索
             # 签到类型
             if self.KeyWordCheck('/h') is True or self.KeyWordCheck('/help') is True or self.KeyWordCheck('/帮助') is True:
-                return self.TextReply('帮助信息')
+                return self.TextReply('回复 签到 即可签到\n回复 admincp 进入管理模式\n回复 聊天 与公众号聊天\n任意回复的文字会检索,没有任何结果会记录')
             elif self.KeyWordCheck('签到') is True:
-                return self.auth('sign', Welcom_auth_msg='请回复:QD+您的学号+姓名，例如：QD+111111111+王尼玛',
+                return self.auth('sign', 'two', Welcom_auth_msg='请回复:QD+您的学号+姓名，例如：QD+111111111+王尼玛',
                           Auth_fail_msg='该账号已签到，请勿用同一账号签到！')
             elif self.KeyWordCheck('admincp') is True:
-                return self.auth('adminlogin', Welcom_auth_msg='请输入:账号+密码用于登陆验证',
+                return self.auth('adminlogin', 'one', Welcom_auth_msg='请输入:账号+密码用于登陆验证',
                           Auth_fail_msg='未知错误卧槽,args传入调用问题')
+            elif self.KeyWordCheck('聊天') is True:
+                return self.auth('chat', 'one', Welcom_auth_msg='欢迎进入聊天，回复 退出 即可退出',
+                                 Auth_fail_msg='未知错误卧槽')
             # 其他文字为检索
             else:
                 return self.SearchProcess()
         elif result == 'sign':
             #签到状态
             if self.KeyWordCheck('/h') is True or self.KeyWordCheck('/help') is True or self.KeyWordCheck('/帮助') is True:
-                return self.TextReply('签到帮助信息')
+                return self.TextReply('请回复:QD+您的学号+姓名，例如：QD+111111111+王尼玛  不要重复签到  不要签错了')
             else:
                 return self.SignProcess()
         elif result == 'adminlogin':
             #管理登陆状态
             if self.KeyWordCheck('/h') is True or self.KeyWordCheck('/help') is True or self.KeyWordCheck('/帮助') is True:
-                return self.TextReply('管理登陆帮助信息')
+                return self.TextReply('账号+密码用于登陆验证 登陆后回复关键字即可管理')
             else:
                 return self.AdminAuthProcess()
         elif result == 'admin':
             # 管理状态
             if self.KeyWordCheck('/h') is True or self.KeyWordCheck('/help') is True or self.KeyWordCheck('/帮助') is True:
-                return self.TextReply('管理帮助信息')
+                return self.TextReply('更新菜单 获取菜单 更新素材 导出签到 退出')
             else:
                 return self.AdminOperateProcess()
+        elif result == 'chat':
+            if self.KeyWordCheck('/h') is True or self.KeyWordCheck('/help') is True or self.KeyWordCheck('/帮助') is True:
+                return self.TextReply('回复 退出 即可退出')
+            else:
+                return self.ChatRobot()
         #不满足自动回复的任何条件
         else:
             self.db.insert(CollectionName='comlog', openid=self.source, msg=self.msg, time=self.time)
@@ -231,5 +265,6 @@ class ReplySystem(BaseMsg.MsgBase):
     def ClickEventProcess(self, key):
         #点击事件被动回复方法
         #根据key来处理事件，可以回复消息，记录操作等等，貌似不影响菜单的操作
-        pass
+        if key == 'help':
+            return self.TextReply('回复 签到 即可签到\n回复 admincp 进入管理模式\n回复 聊天 与公众号聊天\n任意回复的文字会检索,没有任何结果会记录')
 

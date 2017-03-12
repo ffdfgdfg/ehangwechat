@@ -23,7 +23,6 @@ class OperateSystem:
             print('refresh token')
             client = WeChatClient(wechatsettings['appid'], wechatsettings['appsecret'])
             token = client.fetch_access_token()['access_token']
-            print(token)
             self.db.update(CollectionName='oplog', by='id', id='main', gettokentime=newtime, token=token)
         #实例化client
         self.client = WeChatClient(None, None, access_token=token)

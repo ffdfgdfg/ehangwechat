@@ -13,6 +13,11 @@
         {
             "name": "联系我们",
             "sub_button": [
+              {
+            "type": "click",
+            "name": "帮助",
+            "key": "help"
+        },
                 {
             "type": "view",
             "name": "易航网",
@@ -20,7 +25,7 @@
         },
         {
             "type": "view",
-            "name": "子菜单测试",
+            "name": "CAUC",
             "url": "http://www.cauc.edu.cn"
         }
             ]
