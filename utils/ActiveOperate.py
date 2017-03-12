@@ -13,18 +13,20 @@ class OperateSystem:
         self.db = DataBase.MongoUtil()
         oplog = self.db.query(CollectionName='oplog', by=None)
         if oplog is None:
-            self.db.insert(CollectionName='oplog', materialcount=0, gettokentime=0, token='')
-            oplog = self.db.query(CollectionName='oplog', by=None)
-        oldtime = oplog[0]['gettokentime']
-        self.token = oplog[0]['token']
-        if time.time() - oldtime > 7000 :
+            self.db.insert(CollectionName='oplog', id='main', materialcount=0, gettokentime=0, token='')
+            oplog = self.db.query(CollectionName='oplog', by='id', id='main')
+        oldtime =oplog[0]['gettokentime']
+        token = oplog[0]['token']
+        newtime = int(time.time())
+        if newtime - oldtime > 7000 :
             #刷新token
+            print('refresh token')
             client = WeChatClient(wechatsettings['appid'], wechatsettings['appsecret'])
-            self.token = client.fetch_access_token()
-            self.db.update(CollectionName='oplog', by='gettokentime', gettokentime=oldtime, token=self.token)
-            self.db.update(CollectionName='oplog', by='token', token=self.token, gettokentime=time.time())
+            token = client.fetch_access_token()['access_token']
+            print(token)
+            self.db.update(CollectionName='oplog', by='id', id='main', gettokentime=newtime, token=token)
         #实例化client
-        self.client = WeChatClient(wechatsettings['appid'], wechatsettings['appsecret'], access_token=self.token)
+        self.client = WeChatClient(None, None, access_token=token)
 
     def GetUserInformation(self, openid, *args, **kwargs):
         #获取用户信息
@@ -55,7 +57,7 @@ class OperateSystem:
         #获取素材
         count = self.client.material.get_count()  #貌似sdk已经转换了json了
         NewsCount = count['news_count'] #image,voice,video
-        HavingMaterial=self.db.query(CollectionName='oplog', by=None)[0]['materialcount'] #传递回来的为一个list【dict】
+        HavingMaterial=self.db.query(CollectionName='oplog', by='id', id='main')[0]['materialcount'] #传递回来的为一个list【dict】
         if HavingMaterial < NewsCount:
             MaterialsDic = self.client.material.batchget('news', offset=HavingMaterial, count=20)
             addser = SearchServes.Serves()
@@ -72,7 +74,7 @@ class OperateSystem:
                     url = news_item['url']
                     thumb_url = news_item['thumb_url']
                     addser.AddIndex(news_item)  # 传入的字典包含很多信息，只存储上面几个
-                    self.db.update(CollectionName='oplog', by='id', id=1, materialcount=HavingMaterial + 1)
+                    self.db.update(CollectionName='oplog', by='id', id='main', materialcount=HavingMaterial + 1)
 
     def GetMenu(self, *args, **kwargs):
         #获取当前菜单
@@ -122,6 +124,6 @@ class OperateSystem:
         #检测更新素材,任务计划是在tornado的ioloop里面
         LocalTime = int(time.time())
         self.GetMaterial()
-        self.db.update(CollectionName='oplog', by='token', token=self.token, materialuptime=LocalTime)
+        self.db.update(CollectionName='oplog', by='id', id='main', materialuptime=LocalTime)
         print('Update materials in %s' % (time.asctime(time.localtime(LocalTime))))
 
