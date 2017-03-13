@@ -81,6 +81,7 @@ class ReplySystem(BaseMsg.MsgBase):
         if results is not None:
             return self.ArticleReply(results)
         else:
+            self.db.insert('comlog', openid=self.source, msg=self.msg, time=self.time)
             return self.TextReply('已经记录消息，等待回复')
 
     def auth(self, *args, **kwargs):
@@ -88,7 +89,7 @@ class ReplySystem(BaseMsg.MsgBase):
         #需要传入args验证类型,kwargs欢迎消息，失败消息
         if self.db.query('user', 'openid', openid=self.source) is None:
             # 数据表中不存在，插入数据
-            self.db.insert('user', self.source, nickname='', type=args[0])
+            self.db.insert('user', openid=self.source, nickname='', type=args[0])
             # 回复欢迎验证消息
             return self.TextReply(kwargs['Welcom_auth_msg'])
         elif self.db.query('user', 'openid', openid=self.source) is not None:

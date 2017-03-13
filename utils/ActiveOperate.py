@@ -13,8 +13,8 @@ class OperateSystem:
         self.db = DataBase.MongoUtil()
         oplog = self.db.query('oplog', None)
         if oplog is None:
-            self.db.insert('oplog', id='main', materialcount=0, gettokentime=0, token='')
-            oplog = self.db.query('oplog', 'id', id='main')
+            self.db.insert('oplog', name='main', materialcount=0, gettokentime=0, token='')
+            oplog = self.db.query('oplog', 'name', name='main')
         oldtime =oplog[0]['gettokentime']
         token = oplog[0]['token']
         newtime = int(time.time())
@@ -23,7 +23,7 @@ class OperateSystem:
             print('refresh token')
             client = WeChatClient(wechatsettings['appid'], wechatsettings['appsecret'])
             token = client.fetch_access_token()['access_token']
-            self.db.update('oplog', 'id', id='main', gettokentime=newtime, token=token)
+            self.db.update('oplog', 'name', name='main', gettokentime=newtime, token=token)
         #实例化client
         self.client = WeChatClient(None, None, access_token=token)
 
@@ -56,7 +56,8 @@ class OperateSystem:
         #获取素材
         count = self.client.material.get_count()  #貌似sdk已经转换了json了
         NewsCount = count['news_count'] #image,voice,video
-        HavingMaterial=self.db.query('oplog', 'id', id='main')[0]['materialcount'] #传递回来的为一个list【dict】
+        print(self.db.query('oplog', 'name', name='main')[0])
+        HavingMaterial=int(self.db.query('oplog', 'name', name='main')[0]['materialcount']) #传递回来的为一个list【dict】
         if HavingMaterial < NewsCount:
             MaterialsDic = self.client.material.batchget('news', offset=HavingMaterial, count=20)
             addser = SearchServes.Serves()
@@ -73,7 +74,7 @@ class OperateSystem:
                     url = news_item['url']
                     thumb_url = news_item['thumb_url']
                     addser.AddIndex(news_item)  # 传入的字典包含很多信息，只存储上面几个
-                    self.db.update('oplog', 'id', id='main', materialcount=HavingMaterial + 1)
+                    self.db.update('oplog', 'name', name='main', materialcount=HavingMaterial + 1)
 
     def GetMenu(self, *args, **kwargs):
         #获取当前菜单
@@ -124,6 +125,6 @@ class OperateSystem:
         #检测更新素材,任务计划是在tornado的ioloop里面
         LocalTime = int(time.time())
         self.GetMaterial()
-        self.db.update('oplog', 'id', id='main', materialuptime=LocalTime)
+        self.db.update('oplog', 'name', name='main', materialuptime=LocalTime)
         print('Update materials in %s' % (time.asctime(time.localtime(LocalTime))))
 

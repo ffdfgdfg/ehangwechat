@@ -108,8 +108,13 @@ class MongoUtil:
                     resultitem.append(oneresult)
                 return resultitem #为一个list
     def update(self, CollectionName, by, *args, **kwargs):
-        #, upsert=True
-        updated = kwargs
+        #
         middlestr = kwargs[by]
-        TreeNewbeeStr = self.NewbeeStr(CollectionName, "update({\'%s\': \'%s\'}, %s)" % (by, middlestr, updated))
+        updated = kwargs
+        if len(args) != 0:
+            if args[0] == 'insert':
+                TreeNewbeeStr = self.NewbeeStr(CollectionName, "update({\'%s\': \'%s\'}, {\'$setOnInsert\':%s}, upsert=True)" % (by, middlestr, updated))
+        else:
+            TreeNewbeeStr = self.NewbeeStr(CollectionName, "update({\'%s\': \'%s\'}, {\'$set\':%s}, upsert=True)" % (by, middlestr, updated))
+        print(TreeNewbeeStr)
         TreeNewbeeStr = eval(TreeNewbeeStr)
