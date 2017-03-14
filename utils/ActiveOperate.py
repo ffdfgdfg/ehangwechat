@@ -75,8 +75,9 @@ class OperateSystem:
                     url = news_item['url']
                     thumb_url = news_item['thumb_url']
                     addser.AddIndex(news_item)  # 传入的字典包含很多信息，只存储上面几个
+                    HavingMaterial = int(self.db.query('oplog', 'name', name='main')[0]['materialcount'])#重新查询置零的数量
                     HavingMaterial = HavingMaterial + 1
-                    self.db.update('oplog', 'name', name='main', materialcount=HavingMaterial)
+                self.db.update('oplog', 'name', name='main', materialcount=HavingMaterial)
         self.db.update('oplog', 'name', name='main', state='done')
 
     def GetMenu(self, *args, **kwargs):

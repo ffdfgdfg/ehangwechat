@@ -37,6 +37,7 @@ class Serves(BaseMsg.MsgBase):
             firstdoc.append(self.result(results_description[0]))
         else:
             firstdoc = None
+        searcher.close()
         return firstdoc
     def AddIndex(self, DictItem):
         #添加检索列表
