@@ -13,7 +13,7 @@ class ReplySystem(BaseMsg.MsgBase):
         #这里为用户发送的消息
         self.msg = msg
         self.source = kwargs['source']
-        self.time = kwargs['time']
+        self.time = kwargs['create_time'] #并不是unix时间戳。。。。进行了标准时间转换
         self.db = DataBase.MongoUtil()
 
     #这里为自动回复的消息
@@ -81,7 +81,8 @@ class ReplySystem(BaseMsg.MsgBase):
         if results is not None:
             return self.ArticleReply(results)
         else:
-            self.db.insert('comlog', openid=self.source, msg=self.msg, time=self.time)
+            import time
+            self.db.insert('comlog', openid=self.source, msg=self.msg, time=int(time.time()))
             return self.TextReply('已经记录消息，等待回复')
 
     def auth(self, *args, **kwargs):

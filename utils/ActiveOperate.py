@@ -54,6 +54,7 @@ class OperateSystem:
 
     def GetMaterial(self, *args, **kwargs):
         #获取素材
+        self.db.update('oplog', 'name', name='main', state='updatingmat')
         count = self.client.material.get_count()  #貌似sdk已经转换了json了
         NewsCount = count['news_count'] #image,voice,video
         print(self.db.query('oplog', 'name', name='main')[0])
@@ -74,7 +75,9 @@ class OperateSystem:
                     url = news_item['url']
                     thumb_url = news_item['thumb_url']
                     addser.AddIndex(news_item)  # 传入的字典包含很多信息，只存储上面几个
-                    self.db.update('oplog', 'name', name='main', materialcount=HavingMaterial + 1)
+                    HavingMaterial = HavingMaterial + 1
+                    self.db.update('oplog', 'name', name='main', materialcount=HavingMaterial)
+        self.db.update('oplog', 'name', name='main', state='done')
 
     def GetMenu(self, *args, **kwargs):
         #获取当前菜单
@@ -107,7 +110,7 @@ class OperateSystem:
     def ExportSignLog(self):
         import time
         with open("签到记录.txt", 'a+') as f:
-            header = '\n--------------------------------\n%s\n学号     姓名\n' \
+            header = '\n--------------------------------\n%s\n学号       姓名\n' \
                      % (time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
             f.write(header)
             signlog = self.db.query('signlog', None)
@@ -124,6 +127,11 @@ class OperateSystem:
     def AutoChekingMaterialProcess(self, *args, **kwargs):
         #检测更新素材,任务计划是在tornado的ioloop里面
         LocalTime = int(time.time())
+        oplog = self.db.query('oplog', 'name', name='main')[0]
+        if 'state' in oplog:
+            state = oplog['state']
+            if state == 'updatingmat':
+                return None
         self.GetMaterial()
         self.db.update('oplog', 'name', name='main', materialuptime=LocalTime)
         print('Update materials in %s' % (time.asctime(time.localtime(LocalTime))))

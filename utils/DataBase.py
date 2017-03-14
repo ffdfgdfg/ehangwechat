@@ -116,5 +116,4 @@ class MongoUtil:
                 TreeNewbeeStr = self.NewbeeStr(CollectionName, "update({\'%s\': \'%s\'}, {\'$setOnInsert\':%s}, upsert=True)" % (by, middlestr, updated))
         else:
             TreeNewbeeStr = self.NewbeeStr(CollectionName, "update({\'%s\': \'%s\'}, {\'$set\':%s}, upsert=True)" % (by, middlestr, updated))
-        print(TreeNewbeeStr)
         TreeNewbeeStr = eval(TreeNewbeeStr)
