@@ -57,7 +57,6 @@ class OperateSystem:
         self.db.update('oplog', 'name', name='main', state='updatingmat')
         count = self.client.material.get_count()  #貌似sdk已经转换了json了
         NewsCount = count['news_count'] #image,voice,video
-        print(self.db.query('oplog', 'name', name='main')[0])
         HavingMaterial=int(self.db.query('oplog', 'name', name='main')[0]['materialcount']) #传递回来的为一个list【dict】
         if HavingMaterial < NewsCount:
             MaterialsDic = self.client.material.batchget('news', offset=HavingMaterial, count=20)
@@ -75,7 +74,6 @@ class OperateSystem:
                     url = news_item['url']
                     thumb_url = news_item['thumb_url']
                     addser.AddIndex(news_item)  # 传入的字典包含很多信息，只存储上面几个
-                    HavingMaterial = int(self.db.query('oplog', 'name', name='main')[0]['materialcount'])#重新查询置零的数量
                     HavingMaterial = HavingMaterial + 1
                 self.db.update('oplog', 'name', name='main', materialcount=HavingMaterial)
         self.db.update('oplog', 'name', name='main', state='done')
