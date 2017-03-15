@@ -20,7 +20,6 @@ class wechat(tornado.web.RequestHandler):
         if body.type is 'text':
             content = body.content  # 消息内容
             #消息内容用于实例化自动回复类
-            print(body.create_time)
             auto_reply = PassiveReply.ReplySystem(content, source=body.source, create_time=body.create_time)
             if len(body.content.replace(' ', '')) is 0:
                 return None
